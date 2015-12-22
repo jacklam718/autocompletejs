@@ -154,10 +154,10 @@ class Autocomplete {
 
   _initEventListener () {
     this.element[0]['oninput'] = this._onInput.bind(this);
-    // this.element[0]['onblur']  = this._onBlur.bind(this);
+    this.element[0]['onblur']  = this._onBlur.bind(this);
     document['onkeydown']      = this._onKeydown.bind(this);
-    window.onresize = this._setSuggestionElementPos.bind(this);
+    window['onresize']         = this._setSuggestionElementPos.bind(this);
   }
 }
 
-window.Autocomplete = Autocomplete;
+export {Autocomplete}
