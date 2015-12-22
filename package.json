@@ -2,7 +2,7 @@
   "name": "AutocompleteJs",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./build/AutocompleteJs.js",
   "scripts": {
     "build": "gulp build",
     "start": "gulp",
