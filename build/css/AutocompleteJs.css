@@ -1,0 +1,21 @@
+.suggestions-container {
+  list-style-type: none;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.suggestions-container .suggestion-item {
+  color: #999;
+  padding: 0 4px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  border-top: 1px solid #e6e6e6;
+  line-height: 30px;
+  white-space: nowrap;
+}
+
+.suggestions-container .suggestion-item:hover {
+  background-color: #fafafa;
+}
