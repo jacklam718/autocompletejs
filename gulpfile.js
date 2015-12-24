@@ -81,7 +81,7 @@ var config = (function () {
       src: [
         src
       ],
-      entry: src + '/AutocompleteJs.js',
+      entry: src + '/autocomplete.js',
       dest: dest + '/js',
       watchPath: [
         src + '/**/*.js'
@@ -91,7 +91,7 @@ var config = (function () {
     style: {
       src: src + '/**/*.scss',
       dest: dest + '/css',
-      outputFile: 'AutocompleteJs.css',
+      outputFile: 'autocomplete.css',
       watchPath: [
         src + '/**/*.scss',
       ],
@@ -141,7 +141,6 @@ gulp.task('browserify', function () {
       .transform(
         babelify.configure({
           stage: 0,
-          compact: false,
           only: config.src
         })
       )
@@ -153,7 +152,7 @@ gulp.task('browserify', function () {
     bundler
       .bundle()
       .on('error', onError)
-      .pipe(source('AutocompleteJs.js'))
+      .pipe(source('autocomplete.js'))
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}))
       .pipe(gulpIf(isProc, uglifyJs()))
