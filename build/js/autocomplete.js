@@ -205,5 +205,12 @@ var Autocomplete = (function () {
 
 exports.Autocomplete = Autocomplete;
 
-},{}]},{},[1])
+},{}],2:[function(require,module,exports){
+'use strict';
+
+var _autocomplete = require('./autocomplete');
+
+window.Autocomplete = _autocomplete.Autocomplete;
+
+},{"./autocomplete":1}]},{},[2])
 
