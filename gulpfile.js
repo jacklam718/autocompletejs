@@ -81,7 +81,7 @@ var config = (function () {
       src: [
         src
       ],
-      entry: src + '/autocomplete.js',
+      entry: src + '/main.js',
       dest: dest + '/js',
       watchPath: [
         src + '/**/*.js'
