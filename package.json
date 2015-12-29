@@ -1,8 +1,8 @@
 {
-  "name": "autocomple",
+  "name": "autocomplete",
   "version": "1.0.0",
   "description": "",
-  "main": "./build/autocomple.js",
+  "main": "./build/autocomplete.js",
   "scripts": {
     "build": "gulp build",
     "start": "gulp",
