@@ -1,50 +1,25 @@
-class Autocomplete {
-  KEY_ARROW_UP = 38;
+export default class Autocomplete {
+  KEY_ARROW_UP   = 38;
   KEY_ARROW_DOWN = 40;
-  KEY_ENTER = 13;
-  KEY_ESC = 27;
+  KEY_ENTER      = 13;
+  KEY_ESC        = 27;
 
-  EVENT_ON_SELECT = 'onselect'
+  EVENT_ON_SELECT    = 'onselect';
+  EVENT_ON_INPUT     = 'oninput';
+  EVENT_ON_MOUSEOVER = 'onmouseover';
 
-  constructor (element, options) {
-    this.element = element;
-    this.options = options;
+  constructor (inputElement, options) {
+    this.inputElement = inputElement;
+    this.options      = options;
 
     this.currentIndex       = 0;
     this.suggestions        = [];
     this.selectedSuggestion = null;
     this.queryText          = '';
     this.data               = [];
-    this.events             = {};
-
-    this.keyboardEvents = {};
-    this.keyboardEvents[this.KEY_ARROW_UP]   = this.keyArrowUp;
-    this.keyboardEvents[this.KEY_ARROW_DOWN] = this.keyArrowDown;
-    this.keyboardEvents[this.KEY_ENTER]      = this.keyEnter;
-    this.keyboardEvents[this.KEY_ESC]        = this.keyEsc;
+    this.callbacks          = {};
 
     this._initEventListener();
-  }
-
-  keyArrowUp () {
-    let index = this.currentIndex - 1;
-    this._setIndex(index < 0 ? this.suggestions.length : -1);
-  }
-
-  keyArrowDown () {
-    let index = this.currentIndex + 1
-    this._setIndex(index > this.suggestions.length ? -1 : index);
-  }
-
-  keyEnter () {
-    this.select();
-  }
-
-  keyEsc () {
-    setTimeout(() => {
-      this._setIndex(-1);
-      this._removeSuggestionElement();
-    }, 150);
   }
 
   getSuggestions (kwd, options={ignoreCase: true}) {
@@ -56,44 +31,86 @@ class Autocomplete {
       }
       return kwd === '' ? false : itemName.search(kwd) !== -1;
     });
+    return this;
   }
 
   setData (data) {
     this.data = data;
+    return this;
   }
 
-  select () {
-    console.log(this.suggestions[this.currentIndex]);
-    this.selectedSuggestion = Object.create(this.suggestions[this.currentIndex]);
-    this._removeSuggestionElement();
-    this._setIndex(-1);
-    this.callEvent(this.EVENT_ON_SELECT, this.selectedSuggestion);
+  setSuggestions (suggestions) {
+    this.suggestions = suggestions;
+    return this;
   }
 
-  addEventListiner (event, cb) {
-    this.events[event] = cb;
+  addEventListener (event, cb) {
+    this.callbacks[event] = this.callbacks[event] || [];
+    this.callbacks[event].push(cb);
+    return this;
   }
 
-  callEvent () {
-    let [event, args] = [arguments[0], Array.prototype.slice.call(arguments, 1, arguments.length)];
-    if (this.events[event]) {
-      this.events[event](...args);
+  _callEvent ({eventType=this, args=this, event=this}={}) {
+    // let [event, args] = [arguments[0], Array.prototype.slice.call(arguments, 1, arguments.length)];
+    if (this.callbacks[eventType]) {
+      for (let i = 0; i < this.callbacks[eventType].length; i++) {
+        this.callbacks[eventType][i].call(event, args);
+      }
     }
   }
 
-  _onKeydown (e) {
-    if (this.keyboardEvents.hasOwnProperty(e.keyCode)) {
-      this.keyboardEvents[e.keyCode].call(this);
+  _keyArrowUp () {
+    let index = this.currentIndex - 1;
+    this._setIndex(index < 0 ? this.suggestions.length : -1);
+  }
+
+  _keyArrowDown () {
+    let index = this.currentIndex + 1
+    this._setIndex(index > this.suggestions.length ? -1 : index);
+  }
+
+  _keyEnter () {
+    this._onSelect();
+  }
+
+  _keyEsc () {
+    setTimeout(() => {
+      this._setIndex(-1);
+      this._removeSuggestionElement();
+    }, 150);
+  }
+
+  _onKeydown (event) {
+    if (this.keyboardEvents.hasOwnProperty(event.keyCode)) {
+      this.keyboardEvents[event.keyCode].forEach(fun => {
+        console.log(this.currentIndex);
+        fun.call(this)
+      })
     }
   }
 
-  _onInput (e) {
-    this.queryText = e.target.value;
-    this.suggestions = this.getSuggestions(this.queryText);
+  _onMouseover (event) {
+    this._callEvent({eventType: this.EVENT_ON_MOUSEOVER, args: this.currentIndex, event: event});
+  }
+
+  _onSelect (event) {
+    if (this.suggestions.length > 0) {
+      this.selectedSuggestion = this.suggestions[this.currentIndex];
+      this.inputElement.value = this.selectedSuggestion.name;
+      this._callEvent({eventType: this.EVENT_ON_SELECT, args: this.selectedSuggestion, event: event});
+      this._removeSuggestionElement();
+      this._setIndex(-1);
+    }
+  }
+
+  _onInput (event) {
+    this.queryText = event.target.value;
+    this.suggestions = (this.data) ? this.getSuggestions(this.queryText) : this.suggestions;
+    this._callEvent({eventType: this.EVENT_ON_INPUT, args: {queryText: this.queryText, suggestions: this.suggestions}, event: event});
     this._createSuggestionElement();
   }
 
-  _onBlur (e) {
+  _onBlur (event) {
     setTimeout(() => {
       this._removeSuggestionElement();
       this._setIndex(-1);
@@ -105,59 +122,67 @@ class Autocomplete {
   }
 
   _removeSuggestionElement () {
-    this.$ul.remove();
+    this.suggestionsElement && this.suggestionsElement.remove();
   }
 
   _createSuggestionElement () {
-    if (this.$ul) {
+    if (this.suggestionsElement) {
       this._removeSuggestionElement();
     }
 
-    this.$ul = $(`<ul class="suggestions-container"></ul>`);
-    let $li;
     let suggestions = [];
 
+    this.suggestionsElement = document.createElement('ul');
+    this.suggestionsElement.className = 'suggestions-container';
+
     for (let i = 0; i < this.suggestions.length; i++) {
-      let suggestion = `
+      suggestions.push(`
         <li class="suggestion-item" data-index="${i}">
           ${this.suggestions[i].name}
         </li>
-      `;
-      suggestions.push(suggestion);
+      `);
     }
 
-    $li = $(suggestions.join(''));
-    this.$ul.append($li);
-
-    // add mouseover event
-    $li.on('mouseover', (e) => {
+    this.suggestionsElement.innerHTML = suggestions.join('');
+    this.suggestionsElement.onmouseover = e => {
       this._setIndex(parseInt(e.target.dataset['index']));
-    });
+      this._onMouseover(e);
+    };
 
-    $li.on('click', (e) => {
+    this.suggestionsElement.onclick = e => {
       this._setIndex(parseInt(e.target.dataset['index']));
-      this.select();
-    });
+      this._onSelect(e);
+    };
 
-    this.element.after(this.$ul);
-    this._setSuggestionElementPos();
+    this.inputElement.parentNode.insertBefore(this.suggestionsElement, this.inputElement.nextSibling);
+    this._setSuggestionsElementPosAndSize();
   }
 
-  _setSuggestionElementPos () {
-    if (this.$ul) {
-      let top   = this.element.position().top;
-      let left  = this.element.position().left;
-      let width = this.element.width();
-      this.$ul.attr('style', `top: ${top + 4}px; left: ${left}px; width: ${width + 5}px; position: absolute;`);
+  _setSuggestionsElementPosAndSize () {
+    if (this.suggestionsElement) {
+      let top           = this.inputElement.offsetTop;
+      let left          = this.inputElement.offsetLeft;
+      let width         = this.inputElement.offsetWidth;
+      let height        = this.inputElement.offsetHeight;
+      let paddingTop    = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-top')) || 0;
+      let paddingBottom = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-bottom')) || 0;
+
+      this.suggestionsElement.style.cssText = `
+        top: ${top + height + paddingTop + paddingBottom - 1}px; left: ${left}px; width: ${width}px; position: absolute;
+      `;
     }
   }
 
   _initEventListener () {
-    this.element[0]['oninput'] = this._onInput.bind(this);
-    this.element[0]['onblur']  = this._onBlur.bind(this);
-    document['onkeydown']      = this._onKeydown.bind(this);
-    window['onresize']         = this._setSuggestionElementPos.bind(this);
+    this.keyboardEvents = {};
+    this.keyboardEvents[this.KEY_ARROW_UP]   = [this._keyArrowUp];
+    this.keyboardEvents[this.KEY_ARROW_DOWN] = [this._keyArrowDown];
+    this.keyboardEvents[this.KEY_ENTER]      = [this._keyEnter];
+    this.keyboardEvents[this.KEY_ESC]        = [this._keyEsc];
+
+    this.inputElement['oninput'] = this._onInput.bind(this);
+    this.inputElement['onblur']  = this._onBlur.bind(this);
+    document['onkeydown']        = this._onKeydown.bind(this);
+    window['onresize']           = this._setSuggestionsElementPosAndSize.bind(this);
   }
 }
-
-export {Autocomplete}

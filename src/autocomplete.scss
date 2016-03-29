@@ -4,6 +4,12 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   text-align: left;
 
+  -webkit-margin-before: 4px;
+  -webkit-margin-after: 4px;
+
+  -moz-margin-before: 4px;
+  -moz-margin-after: 4px;
+
   .suggestion-item {
     color: #999;
     padding: 0 4px;
@@ -15,7 +21,7 @@
     white-space: nowrap;
 
     &:hover {
-      background-color: #fafafa;
+      background-color: #e6e6e6;
     }
   }
 }
