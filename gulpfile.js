@@ -1,4 +1,3 @@
-
 'use strict';
 
 // *****************
@@ -12,25 +11,15 @@ var onWatch = false;
 // MODULES / UTILS
 // *****************
 var gulp = require('gulp');
+var plugins = require('gulp-load-plugins')();
 var browserify = require('browserify');
 var buffer = require('vinyl-buffer');
-var browserSync = require('browser-sync');
-var watchify = require('watchify');
 var source = require('vinyl-source-stream');
-var sourcemaps = require('gulp-sourcemaps');
+var browserSync = require('browser-sync');
 var babelify = require('babelify');
-var del = require('del');
-var nodemon = require('gulp-nodemon');
-var notify = require('gulp-notify');
 var notifier = require('node-notifier');
-var concatCss = require('gulp-concat-css');
-var addSrc = require('gulp-add-src');
-var uglifyCss = require('gulp-uglifycss');
-var uglifyJs = require('gulp-uglifyjs');
-var gulpIf = require('gulp-if');
-var runSequence = require('run-sequence');
 var stringify = require('stringify');
-var sass = require('gulp-sass');
+var sassify = require('sassify');
 
 // *****************
 // HANDLERS
@@ -38,42 +27,40 @@ var sass = require('gulp-sass');
 var onError = function () {
   var args = Array.prototype.slice.call(arguments);
   hasErrors = true;
-  notify.onError({
+  plugins.notify.onError({
     title: 'Compile Error',
-    message: '<%= error.message %>'
+    message: '<%= error.message %> 😡'
   }).apply(this, args);
 
   return this.emit('end');
-}
+};
 
 var onSuccess = function () {
   onWatch = true;
-  return notify({
+  return plugins.notify({
     title: 'Build Success',
-    message: 'Build Success',
+    message: 'Build Success 👍',
     templateOptions: {
       date: new Date()
     }
   });
-}
+};
 
 var bundle_logger = function () {
   startTime = null;
-}
+};
 
 // *****************
 // CONFIG
 // *****************
 var config = (function () {
-  var src, dest, _config, bowerDir, nodeDir;
+  var src  = './src';
+  var dest = './build';
 
-  src = 'src';
-  dest = 'build';
+  var bowerDir = './bower_components';
+  var nodeDir  = './node_modules';
 
-  bowerDir = './bower_components';
-  nodeDir = './node_modules';
-
-  _config = {
+  var _config = {
     src: src,
     dest: dest,
 
@@ -81,7 +68,7 @@ var config = (function () {
       src: [
         src
       ],
-      entry: src + '/main.js',
+      entry: src + '/index.js',
       dest: dest + '/js',
       watchPath: [
         src + '/**/*.js'
@@ -118,75 +105,76 @@ var config = (function () {
 // *****************
 gulp.task('task-done-notify', function () {
   if (! hasErrors) {
-    notifier.notify({title: 'Build Sucess', message: 'Done' });
+    notifier.notify({title: 'Build Sucess', message: 'Done 👍' });
   }
 });
 
 // script
 gulp.task('browserify', function () {
-  var bundle, bundler, options;
-
-  bundler = browserify({
+  var bundler = browserify({
     cache: {},
     packageCache: {},
     fullPaths: false,
     entries: [config.script.entry],
     extensions: ['.js', '.html'],
-    debug: true
+    debug: true,
   });
 
-  bundle = function () {
     // transform ES6 to ES5
-    bundler
-      .transform(
-        babelify.configure({
-          stage: 0,
-          only: config.src
-        })
-      )
+  bundler.transform(
+    babelify.configure({
+      presets: ['es2015', 'stage-0'],
+      plugins: ['transform-decorators-legacy'],
+      only: config.src
+    })
+  );
 
-    bundler.transform(
-      stringify(['.html'])
-    )
+  bundler.transform(
+    stringify(['.html'])
+  );
 
-    bundler
-      .bundle()
-      .on('error', onError)
-      .pipe(source('autocomplete.js'))
-      .pipe(buffer())
-      .pipe(sourcemaps.init({loadMaps: true}))
-      .pipe(gulpIf(isProc, uglifyJs()))
-      .pipe(gulp.dest(config.script.dest))
-      .pipe(browserSync.reload({stream: true}))
-      .pipe(onSuccess());
-  }
+  bundler.transform(sassify, {
+    'auto-inject': true,
+    base64Encode: false,
+    sourceMap: false
+  });
 
-  return bundle();
+  return bundler
+    .bundle()
+    .on('error', onError)
+    .pipe(source('autocomplete.js'))
+    .pipe(buffer())
+    .pipe(plugins.sourcemaps.init({loadMaps: true}))
+    .pipe(plugins.if(isProc, plugins.uglifyjs()))
+    .pipe(gulp.dest(config.script.dest));
+    // .pipe(browserSync.reload({stream: true}))
 });
 
 // style
 gulp.task('style', function () {
-  return gulp.src(config.style.src)
+  return gulp
+    .src(config.style.src)
     .on('error', onError)
-    .pipe(sass())
-    .pipe(addSrc.prepend(config.style.concatPath))
-    .pipe(concatCss(config.style.outputFile))
-    .pipe(gulpIf(isProc, uglifyCss()))
-    .pipe(gulp.dest(config.style.dest))
-    .pipe(browserSync.reload({stream: true}))
-    .pipe(onSuccess());
+    .pipe(plugins.sass().on('error', onError))
+    .pipe(plugins.addsrc.prepend(config.style.concatPath))
+    .pipe(plugins.concatcss(config.style.outputFile))
+    .pipe(plugins.if(isProc, plugins.uglifycss()))
+    .pipe(gulp.dest(config.style.dest));
+    // .pipe(browserSync.reload({stream: true}))
 });
 
 gulp.task('template', function () {
-  return gulp.src(config.template.src)
+  return gulp
+    .src(config.template.src)
     .on('error', onError)
-    .pipe(gulp.dest(config.template.dest))
-    .pipe(onSuccess());
+    .pipe(gulp.dest(config.template.dest));
 });
 
 // clean dest
 gulp.task('clean', function () {
-  return del([config.dest]);
+  return gulp
+    .src([config.dest], {read: false})
+    .pipe(plugins.clean())
 });
 
 gulp.task('browser-sync', function () {
@@ -201,15 +189,26 @@ gulp.task('browser-sync', function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(config.style.watchPath, ['style', browserSync.reload]);
-  gulp.watch(config.script.watchPath, ['browserify', 'template', browserSync.reload]);
+  var queue = plugins.watchSequence(300);
+
+  function reloadBrowser() {
+    setTimeout(function() {
+      browserSync.reload();
+      notifier.notify({title: 'Build Sucess', message: 'Browser Reloaded 😀'});
+    }, 500);
+  }
+
+  gulp.watch([].concat(config.script.watchPath, config.style.watchPath), {
+    name: 'JS&CSS',
+    emitOnGlob: false
+  }, queue.getHandler('browserify', 'template', reloadBrowser));
   return gulp;
 });
 
 gulp.task('build', function (cb) {
-  runSequence('clean', ['browserify', 'style'], cb);
+  plugins.sequence('clean', ['browserify'], cb);
 });
 
 gulp.task('default', function (cb) {
-  runSequence('clean', ['browserify', 'style'], 'watch', 'browser-sync', 'task-done-notify', cb);
+  plugins.sequence('clean', ['browserify'], 'watch', 'browser-sync', 'task-done-notify', cb);
 });

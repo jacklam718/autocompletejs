@@ -3,12 +3,15 @@
   <head>
     <meta charset="utf-8">
     <title>autocomplete</title>
-    <link rel="stylesheet" href="build/css/autocomplete.css">
+    <!-- <link rel="stylesheet" href="build/css/autocomplete.css"> -->
   </head>
   <body>
 
     <div class="container" style="text-align: center;">
-      <input type="text" name="suggestion" id="suggestion" value="">
+      <div class="">
+        Selected: <span id="selected"></span>
+      </div>
+      <input type="text" name="autocomplete" id="autocomplete" value="">
     </div>
 
     <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
