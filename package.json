@@ -1,7 +1,7 @@
 {
-  "name": "autocomplete",
-  "version": "1.0.0",
-  "description": "",
+  "name": "autocompletejs",
+  "version": "0.0.1",
+  "description": "A simple and extendable and no jQuery required JavaScript library",
   "main": "./build/autocomplete.js",
   "scripts": {
     "build": "gulp build",
@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "jack lam <jacklam718@gmail.com> (https://github.com/jacklam718)",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "babel": "^6.5.2",
     "babelify": "^7.2.0",

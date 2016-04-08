@@ -1,0 +1,23 @@
+{
+  "name": "autocompletejs",
+  "description": "A simple and extendable and no jQuery required JavaScript library",
+  "version": "0.0.1",
+  "main": "./build/autocomplete.js",
+  "authors": [
+    "jack lam <jacklam718@gmail.com> (https://github.com/jacklam718)"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "autocomplete"
+  ],
+  "homepage": "https://github.com/jacklam718/autocompoletejs",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ]
+}
