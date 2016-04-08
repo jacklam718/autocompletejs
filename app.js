@@ -78,13 +78,19 @@
 
   autocomplete
     .setData(moreMovies)
-    .addEventListener('onselect', function(suggestion) {
+    .on(autocomplete.ON_SELECT, function(suggestion) {
       console.log('selected: ', suggestion);
       selected.textContent = JSON.stringify(suggestion);
     })
-    .addEventListener('onmouseover', function(index) {
-      console.log('currentIndex: ', index);
-    });
+    .on(autocomplete.ON_MOUSEOVER, function(index) {
+        console.log('currentIndex: ', index);
+    })
+    .on(autocomplete.ON_ELEMENT_CREATED, function(suggestionsElement) {
+      console.log('suggestions container element created: ', suggestionsElement);
+    })
+    .on(autocomplete.ON_ELEMENT_REMOVED, function() {
+      console.log('suggestions container element removed: ');
+    })
 }())
 
 // window.Autocomplete = Autocomplete;

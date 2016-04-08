@@ -1,23 +1,35 @@
+/*
+Author: Jack (jacklam718@gmail.com)
+Github: https://github.com/jacklam718/autocompletejs
+*/
+
 export default class Autocomplete {
-  KEY_ARROW_UP   = 38;
-  KEY_ARROW_DOWN = 40;
-  KEY_ENTER      = 13;
-  KEY_ESC        = 27;
+  KEY_ARROW_UP       = 38;
+  KEY_ARROW_DOWN     = 40;
+  KEY_ENTER          = 13;
+  KEY_ESC            = 27;
 
-  EVENT_ON_SELECT    = 'onselect';
-  EVENT_ON_INPUT     = 'oninput';
-  EVENT_ON_MOUSEOVER = 'onmouseover';
+  ON_SELECT          = 'on_select';
+  ON_INPUT           = 'on_input';
+  ON_MOUSEOVER       = 'on_mouseover';
+  ON_ELEMENT_CREATED = 'on_suggestions_element_created';
+  ON_ELEMENT_REMOVED = 'on_suggestions_element_removed';
 
-  constructor (inputElement, options) {
-    this.inputElement = inputElement;
-    this.options      = options;
+  constructor (inputElement) {
+    if (typeof inputElement === 'string') {
+      this.inputElement = document.querySelector(inputElement);
+    } else if (inputElement instanceof HTMLElement) {
+      this.inputElement = inputElement;
+    } else {
+      throw('inputElement invalid: the inputElement should be a DOM object or a query selector');
+      return;
+    }
 
     this.currentIndex       = 0;
     this.suggestions        = [];
     this.selectedSuggestion = null;
-    this.queryText          = '';
     this.data               = [];
-    this.callbacks          = {};
+    this.events             = {};
 
     this._initEventListener();
   }
@@ -31,7 +43,6 @@ export default class Autocomplete {
       }
       return kwd === '' ? false : itemName.search(kwd) !== -1;
     });
-    return this;
   }
 
   setData (data) {
@@ -44,17 +55,29 @@ export default class Autocomplete {
     return this;
   }
 
-  addEventListener (event, cb) {
-    this.callbacks[event] = this.callbacks[event] || [];
-    this.callbacks[event].push(cb);
+  setSuggestionsAndCreateElement (suggestions) {
+    this.setSuggestions(suggestions);
+    this._createSuggestionsElement();
+    return this;
+  }
+    
+  setSuggestionItemElementTemplate (template) {
+  }
+
+  on (event, cb) {
+    this._addEvent(event, cb);
     return this;
   }
 
+  _addEvent (event, cb) {
+    this.events[event] = this.events[event] || [];
+    this.events[event].push(cb);
+  }
+
   _callEvent ({eventType=this, args=this, event=this}={}) {
-    // let [event, args] = [arguments[0], Array.prototype.slice.call(arguments, 1, arguments.length)];
-    if (this.callbacks[eventType]) {
-      for (let i = 0; i < this.callbacks[eventType].length; i++) {
-        this.callbacks[eventType][i].call(event, args);
+    if (this.events[eventType]) {
+      for (let i = 0; i < this.events[eventType].length; i++) {
+        this.events[eventType][i].call(event, args);
       }
     }
   }
@@ -84,30 +107,29 @@ export default class Autocomplete {
     if (this.keyboardEvents.hasOwnProperty(event.keyCode)) {
       this.keyboardEvents[event.keyCode].forEach(fun => {
         console.log(this.currentIndex);
-        fun.call(this)
+        fun.call(this);
       })
     }
   }
 
   _onMouseover (event) {
-    this._callEvent({eventType: this.EVENT_ON_MOUSEOVER, args: this.currentIndex, event: event});
+    this._callEvent({eventType: this.ON_MOUSEOVER, args: this.currentIndex, event: event});
   }
 
   _onSelect (event) {
     if (this.suggestions.length > 0) {
       this.selectedSuggestion = this.suggestions[this.currentIndex];
       this.inputElement.value = this.selectedSuggestion.name;
-      this._callEvent({eventType: this.EVENT_ON_SELECT, args: this.selectedSuggestion, event: event});
+      this._callEvent({eventType: this.ON_SELECT, args: this.selectedSuggestion, event: event});
       this._removeSuggestionElement();
       this._setIndex(-1);
     }
   }
 
   _onInput (event) {
-    this.queryText = event.target.value;
-    this.suggestions = (this.data) ? this.getSuggestions(this.queryText) : this.suggestions;
-    this._callEvent({eventType: this.EVENT_ON_INPUT, args: {queryText: this.queryText, suggestions: this.suggestions}, event: event});
-    this._createSuggestionElement();
+    let queryText = event.target.value;
+    if (this.data) {this.setSuggestionsAndCreateElement(this.getSuggestions(queryText));}
+    this._callEvent({eventType: this.ON_INPUT, args: {queryText: queryText, suggestions: this.suggestions}, event: event});
   }
 
   _onBlur (event) {
@@ -117,23 +139,45 @@ export default class Autocomplete {
     }, 150);
   }
 
+  _onFocus (event) {
+    setTimeout(() => {
+      this._createSuggestionsElement();
+    }, 150);
+  }
+
   _setIndex (index) {
     this.currentIndex = index;
   }
 
   _removeSuggestionElement () {
-    this.suggestionsElement && this.suggestionsElement.remove();
+    if (this.suggestionsElement) {
+      this.suggestionsElement.remove();
+      delete this.suggestionsElement;
+      this._callEvent({eventType: this.ON_ELEMENT_REMOVED, args: null, event: null});
+    }
   }
 
-  _createSuggestionElement () {
-    if (this.suggestionsElement) {
-      this._removeSuggestionElement();
-    }
-
+  _createSuggestionsElement () {
     let suggestions = [];
 
-    this.suggestionsElement = document.createElement('ul');
-    this.suggestionsElement.className = 'suggestions-container';
+    if (!this.suggestionsElement) {
+      this.suggestionsElement = document.createElement('ul');
+      this.inputElement.parentNode.insertBefore(this.suggestionsElement, this.inputElement.nextSibling);
+      this.suggestionsElement.className = 'suggestions-container';
+
+      this.suggestionsElement.onmouseover = e => {
+        this._setIndex(parseInt(e.target.dataset['index']));
+        this._onMouseover(e);
+      };
+
+      this.suggestionsElement.onclick = e => {
+        this._setIndex(parseInt(e.target.dataset['index']));
+        this._onSelect(e);
+      };
+
+      this._callEvent({eventType: this.ON_ELEMENT_CREATED, args: {suggestionsElement: this.suggestionsElement}, event: null});
+      this._setSuggestionsElementPosAndSize();
+    }
 
     for (let i = 0; i < this.suggestions.length; i++) {
       suggestions.push(`
@@ -144,18 +188,7 @@ export default class Autocomplete {
     }
 
     this.suggestionsElement.innerHTML = suggestions.join('');
-    this.suggestionsElement.onmouseover = e => {
-      this._setIndex(parseInt(e.target.dataset['index']));
-      this._onMouseover(e);
-    };
-
-    this.suggestionsElement.onclick = e => {
-      this._setIndex(parseInt(e.target.dataset['index']));
-      this._onSelect(e);
-    };
-
-    this.inputElement.parentNode.insertBefore(this.suggestionsElement, this.inputElement.nextSibling);
-    this._setSuggestionsElementPosAndSize();
+    return this;
   }
 
   _setSuggestionsElementPosAndSize () {
@@ -182,6 +215,7 @@ export default class Autocomplete {
 
     this.inputElement['oninput'] = this._onInput.bind(this);
     this.inputElement['onblur']  = this._onBlur.bind(this);
+    this.inputElement['onfocus'] = this._onFocus.bind(this);
     document['onkeydown']        = this._onKeydown.bind(this);
     window['onresize']           = this._setSuggestionsElementPosAndSize.bind(this);
   }
