@@ -60,7 +60,7 @@ export default class Autocomplete {
     this._createSuggestionsElement();
     return this;
   }
-    
+
   setSuggestionItemElementTemplate (template) {
   }
 
@@ -76,19 +76,19 @@ export default class Autocomplete {
 
   _callEvent ({eventType=this, args=this, event=this}={}) {
     if (this.events[eventType]) {
-      for (let i = 0; i < this.events[eventType].length; i++) {
+      for (const i = 0; i < this.events[eventType].length; i++) {
         this.events[eventType][i].call(event, args);
       }
     }
   }
 
   _keyArrowUp () {
-    let index = this.currentIndex - 1;
+    const index = this.currentIndex - 1;
     this._setIndex(index < 0 ? this.suggestions.length : -1);
   }
 
   _keyArrowDown () {
-    let index = this.currentIndex + 1
+    const index = this.currentIndex + 1
     this._setIndex(index > this.suggestions.length ? -1 : index);
   }
 
@@ -106,21 +106,20 @@ export default class Autocomplete {
   _onKeydown (event) {
     if (this.keyboardEvents.hasOwnProperty(event.keyCode)) {
       this.keyboardEvents[event.keyCode].forEach(fun => {
-        console.log(this.currentIndex);
         fun.call(this);
       })
     }
   }
 
   _onMouseover (event) {
-    this._callEvent({eventType: this.ON_MOUSEOVER, args: this.currentIndex, event: event});
+    this._callEvent({eventType: this.ON_MOUSEOVER, args: this.currentIndex, event});
   }
 
   _onSelect (event) {
     if (this.suggestions.length > 0) {
       this.selectedSuggestion = this.suggestions[this.currentIndex];
       this.inputElement.value = this.selectedSuggestion.name;
-      this._callEvent({eventType: this.ON_SELECT, args: this.selectedSuggestion, event: event});
+      this._callEvent({eventType: this.ON_SELECT, args: this.selectedSuggestion, event});
       this._removeSuggestionElement();
       this._setIndex(-1);
     }
@@ -129,7 +128,7 @@ export default class Autocomplete {
   _onInput (event) {
     let queryText = event.target.value;
     if (this.data) {this.setSuggestionsAndCreateElement(this.getSuggestions(queryText));}
-    this._callEvent({eventType: this.ON_INPUT, args: {queryText: queryText, suggestions: this.suggestions}, event: event});
+    this._callEvent({eventType: this.ON_INPUT, args: {queryText, suggestions: this.suggestions}, event});
   }
 
   _onBlur (event) {
@@ -158,7 +157,7 @@ export default class Autocomplete {
   }
 
   _createSuggestionsElement () {
-    let suggestions = [];
+    const suggestions = [];
 
     if (!this.suggestionsElement) {
       this.suggestionsElement = document.createElement('ul');
@@ -179,7 +178,7 @@ export default class Autocomplete {
       this._setSuggestionsElementPosAndSize();
     }
 
-    for (let i = 0; i < this.suggestions.length; i++) {
+    for (const i = 0; i < this.suggestions.length; i++) {
       suggestions.push(`
         <li class="suggestion-item" data-index="${i}">
           ${this.suggestions[i].name}
@@ -193,12 +192,12 @@ export default class Autocomplete {
 
   _setSuggestionsElementPosAndSize () {
     if (this.suggestionsElement) {
-      let top           = this.inputElement.offsetTop;
-      let left          = this.inputElement.offsetLeft;
-      let width         = this.inputElement.offsetWidth;
-      let height        = this.inputElement.offsetHeight;
-      let paddingTop    = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-top')) || 0;
-      let paddingBottom = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-bottom')) || 0;
+      const top           = this.inputElement.offsetTop;
+      const left          = this.inputElement.offsetLeft;
+      const width         = this.inputElement.offsetWidth;
+      const height        = this.inputElement.offsetHeight;
+      const paddingTop    = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-top')) || 0;
+      const paddingBottom = parseInt(window.getComputedStyle(this.inputElement, null).getPropertyValue('padding-bottom')) || 0;
 
       this.suggestionsElement.style.cssText = `
         top: ${top + height + paddingTop + paddingBottom - 1}px; left: ${left}px; width: ${width}px; position: absolute;
