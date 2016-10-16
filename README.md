@@ -1,4 +1,4 @@
-Â# AutocompleteJs
+# AutocompleteJs
 A simple and extendable and no jQuery required JavaScript library
 
 # Demo
@@ -29,7 +29,12 @@ npm install --save autocompletejs
 ### OR
 ### if you using browserify you can use ```require```
 ```javascript
-var Autocomplete = require('autocomplete');
+var Autocomplete = require('autocompletejs');
+```
+### OR
+### ES6 import
+```javascript
+import Autocomplete from 'autocompletejs';
 ```
 
 <br>
