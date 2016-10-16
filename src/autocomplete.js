@@ -34,7 +34,7 @@ export default class Autocomplete {
     this._initEventListener();
   }
 
-  getSuggestions (kwd, options={ignoreCase: true}) {
+  getSuggestions(kwd, options={ignoreCase: true}) {
     return this.data.filter((item) => {
       let itemName = item.name;
       if (options.ignoreCase) {
@@ -50,18 +50,18 @@ export default class Autocomplete {
     return this;
   }
 
-  setSuggestions (suggestions) {
+  setSuggestions(suggestions) {
     this.suggestions = suggestions;
     return this;
   }
 
-  setSuggestionsAndCreateElement (suggestions) {
+  setSuggestionsAndCreateElement(suggestions) {
     this.setSuggestions(suggestions);
     this._createSuggestionsElement();
     return this;
   }
 
-  setSuggestionItemElementTemplate (template) {
+  setSuggestionItemElementTemplate(template) {
   }
 
   on (event, cb) {
@@ -82,28 +82,28 @@ export default class Autocomplete {
     }
   }
 
-  _keyArrowUp () {
+  _keyArrowUp() {
     const index = this.currentIndex - 1;
     this._setIndex(index < 0 ? this.suggestions.length : -1);
   }
 
-  _keyArrowDown () {
+  _keyArrowDown() {
     const index = this.currentIndex + 1
     this._setIndex(index > this.suggestions.length ? -1 : index);
   }
 
-  _keyEnter () {
+  _keyEnter() {
     this._onSelect();
   }
 
-  _keyEsc () {
+  _keyEsc() {
     setTimeout(() => {
       this._setIndex(-1);
       this._removeSuggestionElement();
     }, 150);
   }
 
-  _onKeydown (event) {
+  _onKeydown(event) {
     if (this.keyboardEvents.hasOwnProperty(event.keyCode)) {
       this.keyboardEvents[event.keyCode].forEach(fun => {
         fun.call(this);
@@ -111,7 +111,7 @@ export default class Autocomplete {
     }
   }
 
-  _onMouseover (event) {
+  _onMouseover(event) {
     this._callEvent({eventType: this.ON_MOUSEOVER, args: this.currentIndex, event});
   }
 
@@ -125,30 +125,30 @@ export default class Autocomplete {
     }
   }
 
-  _onInput (event) {
+  _onInput(event) {
     let queryText = event.target.value;
     if (this.data) {this.setSuggestionsAndCreateElement(this.getSuggestions(queryText));}
     this._callEvent({eventType: this.ON_INPUT, args: {queryText, suggestions: this.suggestions}, event});
   }
 
-  _onBlur (event) {
+  _onBlur(event) {
     setTimeout(() => {
       this._removeSuggestionElement();
       this._setIndex(-1);
     }, 150);
   }
 
-  _onFocus (event) {
+  _onFocus(event) {
     setTimeout(() => {
       this._createSuggestionsElement();
     }, 150);
   }
 
-  _setIndex (index) {
+  _setIndex(index) {
     this.currentIndex = index;
   }
 
-  _removeSuggestionElement () {
+  _removeSuggestionElement() {
     if (this.suggestionsElement) {
       this.suggestionsElement.remove();
       delete this.suggestionsElement;
@@ -156,7 +156,7 @@ export default class Autocomplete {
     }
   }
 
-  _createSuggestionsElement () {
+  _createSuggestionsElement() {
     const suggestions = [];
 
     if (!this.suggestionsElement) {
@@ -190,7 +190,7 @@ export default class Autocomplete {
     return this;
   }
 
-  _setSuggestionsElementPosAndSize () {
+  _setSuggestionsElementPosAndSize() {
     if (this.suggestionsElement) {
       const top           = this.inputElement.offsetTop;
       const left          = this.inputElement.offsetLeft;
@@ -205,7 +205,7 @@ export default class Autocomplete {
     }
   }
 
-  _initEventListener () {
+  _initEventListener() {
     this.keyboardEvents = {};
     this.keyboardEvents[this.KEY_ARROW_UP]   = [this._keyArrowUp];
     this.keyboardEvents[this.KEY_ARROW_DOWN] = [this._keyArrowDown];
