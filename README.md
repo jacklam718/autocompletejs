@@ -31,6 +31,7 @@ npm install --save autocompletejs
 ```javascript
 var Autocomplete = require('autocompletejs');
 ```
+
 ### OR
 ### ES6 import
 ```javascript
@@ -38,9 +39,9 @@ import Autocomplete from 'autocompletejs';
 ```
 
 <br>
-```javascript
-you can pass the query selector or DOM element into this
 
+### you can pass the query selector or DOM element into this
+```javascript
 // pass query selector to library
 var elementId = '#autocomplete';
 var autocomplete new Autocomplete(elementId);
