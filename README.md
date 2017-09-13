@@ -38,14 +38,14 @@ var Autocomplete = require('autocompletejs');
 import Autocomplete from 'autocompletejs';
 ```
 
-<br>
-
-### you can pass the query selector or DOM element into this
 ```javascript
 // pass query selector to library
 var elementId = '#autocomplete';
 var autocomplete new Autocomplete(elementId);
+```
 
+
+```javascript
 // or pass DOM element to library
 var inputElement = document.querySelector('#autocomplete');
 var autocomplete new Autocomplete(inputElement);
